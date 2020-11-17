@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const Customer = require('../model/customer');
 const Merchant = require('../model/merchant');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const checkAuth = require('../middleware/check-auth')
 
-//Router to get all customers data
+//Router to get all merchant data
 router.get('/', (req, res, next) => {
     Merchant.find().exec().then(result=>{
         res.status(200).json(result);
@@ -19,9 +19,16 @@ router.get('/:qrisID', (req, res, next) => {
     })
 })
 
-//Router for customers to sign up
-router.post('/signups', (req, res, next) => {
-    Merchant.find({phonenumber_merchant: req.body.phonenumber}).exec().then(user => {
+//Router get merchant balance
+router.post('/balance', checkAuth, (req, res, next) => {
+    Merchant.findOne({_id: req.body.merchant_id}).select('merchant_name merchant_balance -_id').exec().then(result => {
+        res.status(200).json(result);
+    })
+})
+
+//Router for merchants to sign up
+router.post('/signup', (req, res, next) => {
+    Merchant.find({merchant_phonenumber: req.body.phonenumber}).exec().then(user => {
         if(user.length >=1){
             return res.status(409).json({
                 message: "User exists!"

@@ -13,8 +13,21 @@ router.get('/', (req, res, next) => {
     })
 })
 
+router.post('/getCustomer', checkAuth, (req, res, next) => {
+    Customer.findOne({phonenumber: req.body.phonenumber}).select('-_id -securitypin').exec().then(result => {
+        res.status(200).json(result)
+    })
+})
+
 //Router to get customer balance
-router.get('/balance', checkAuth, (req, res, next) => {
+router.post('/balance', checkAuth, (req, res, next) => {
+    Customer.findOne({phonenumber: req.body.phonenumber}).select('name balance -_id').exec().then(result => {
+        res.status(200).json(result);
+    })
+})
+
+//Public Router to get customer balance
+router.get('/open_API_balance', (req, res, next) => {
     Customer.find({phonenumber: req.body.phonenumber}).select('name balance -_id').exec().then(result => {
         res.status(200).json(result);
     })
@@ -40,7 +53,7 @@ router.post('/signup', (req, res, next) => {
                         phonenumber: req.body.phonenumber,
                         email: req.body.email,
                         securitypin: hash,
-                        balance: 0
+                        balance: 8000
                     });
         
                     customer.save().then(result => {
@@ -82,11 +95,16 @@ router.post('/login', (req, res, next) => {
                 const token = jwt.sign({
                     userID : user[0]._id,
                     userName: user[0].name,
-                    userEmail: user[0].email
+                    userEmail: user[0].email,
+                    userPhonenumber : user[0].phonenumber
                 }, 'secret', {expiresIn : '1h'})
                 return res.status(200).json({
                     message: "Auth Successfull!",
-                    token: token
+                    token: token,
+                    status: 200,
+                    userPhonenumber : user[0].phonenumber,
+                    userName: user[0].name,
+                    userEmail: user[0].email
                 })
             }
         })
