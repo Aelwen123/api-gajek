@@ -26,8 +26,18 @@ router.post('/balance', checkAuth, (req, res, next) => {
     })
 })
 
+router.get('/getMerchant/:phonenumber', (req, res, next) => {
+    Merchant.findOne({merchant_phonenumber: req.params.phonenumber}).select('-__v').exec().then(result => {
+        if(result) res.status(200).json(result)
+        else res.status(404).json({
+            message : "Merchant not found",
+            status : 404
+        })
+    })
+})
+
 //Router for merchants to sign up
-router.post('/signup', (req, res, next) => {
+router.post('/addMerchant', (req, res, next) => {
     Merchant.find({merchant_phonenumber: req.body.phonenumber}).exec().then(user => {
         if(user.length >=1){
             return res.status(409).json({

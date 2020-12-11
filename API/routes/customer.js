@@ -19,6 +19,36 @@ router.post('/getCustomer', checkAuth, (req, res, next) => {
     })
 })
 
+router.post('/public/getCustomer', (req, res, next) => {
+    Customer.findOne({phonenumber: req.body.phonenumber}).select('-_id -securitypin').exec().then(result => {
+        if(!result){
+            return res.status(401).json({
+                message : "Customer not found!",
+                status: 401
+            })
+        }
+        res.status(200).json({
+            result : result,
+            status : 200
+        })
+    })
+})
+
+router.get('/public/getCustomer/:phonenumber', (req, res, next) => {
+    Customer.findOne({phonenumber: req.params.phonenumber}).select('-_id -securitypin').exec().then(result => {
+        if(!result){
+            return res.status(401).json({
+                message : "Customer not found!",
+                status : 401
+            })
+        }
+        else{
+            res.status(200).json(result)
+        }
+    })
+})
+
+
 //Router to get customer balance
 router.post('/balance', checkAuth, (req, res, next) => {
     Customer.findOne({phonenumber: req.body.phonenumber}).select('name balance -_id').exec().then(result => {
@@ -27,8 +57,8 @@ router.post('/balance', checkAuth, (req, res, next) => {
 })
 
 //Public Router to get customer balance
-router.get('/open_API_balance', (req, res, next) => {
-    Customer.find({phonenumber: req.body.phonenumber}).select('name balance -_id').exec().then(result => {
+router.get('/public/balance/:phonenumber', (req, res, next) => {
+    Customer.findOne({phonenumber: req.params.phonenumber}).select('balance -_id').exec().then(result => {
         res.status(200).json(result);
     })
 })
@@ -38,7 +68,8 @@ router.post('/signup', (req, res, next) => {
     Customer.find({phonenumber: req.body.phonenumber}).exec().then(user => {
         if(user.length >=1){
             return res.status(409).json({
-                message: "User exists!"
+                message: "User exists!",
+                status: 409
             });
         } else{
             bcrypt.hash(req.body.securitypin, 10, (err, hash) => {
@@ -65,7 +96,8 @@ router.post('/signup', (req, res, next) => {
                                 userEmail: result.email,
                                 userSecurityPin: result.securitypin,
                                 balance : result.balance,
-                            }
+                            },
+                            status: 200
                         });
                     }). catch(err => {
                         res.status(500).json({
@@ -82,13 +114,15 @@ router.post('/login', (req, res, next) => {
     Customer.find({phonenumber : req.body.phonenumber}).exec().then(user => {
         if(user.length < 1) {
             return res.status(401).json({
-                message: "Auth Failed!"
+                message: "Auth Failed!",
+                status: 401
             })
         }
         bcrypt.compare(req.body.securitypin, user[0].securitypin, (err, result) => {
-            if(err){
+            if(!result){
                 return res.status(401).json({
-                    message: "Auth Failed!"
+                    message: "Auth Failed!",
+                    status: 401
                 })
             }
             if(result){
