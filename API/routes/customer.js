@@ -65,7 +65,7 @@ router.get('/public/balance/:phonenumber', (req, res, next) => {
 
 //Router for customers to sign up
 router.post('/signup', (req, res, next) => {
-    Customer.find({phonenumber: req.body.phonenumber}).exec().then(user => {
+    Customer.find({phonenumber: req.body.phonenumber, accounttype: "basic"}).exec().then(user => {
         if(user.length >=1){
             return res.status(409).json({
                 message: "User exists!",
@@ -84,7 +84,8 @@ router.post('/signup', (req, res, next) => {
                         phonenumber: req.body.phonenumber,
                         email: req.body.email,
                         securitypin: hash,
-                        balance: 8000
+                        balance: 1000000,
+                        accounttype: "basic"
                     });
         
                     customer.save().then(result => {
@@ -96,6 +97,7 @@ router.post('/signup', (req, res, next) => {
                                 userEmail: result.email,
                                 userSecurityPin: result.securitypin,
                                 balance : result.balance,
+                                accounttype: result.accounttype
                             },
                             status: 200
                         });
@@ -109,6 +111,56 @@ router.post('/signup', (req, res, next) => {
         }
     });
 });
+
+//Router for customers to sign up
+router.post('/signup/thirdparty', (req, res, next) => {
+    Customer.find({phonenumber: req.body.phonenumber, accounttype: "thirdparty"}).exec().then(user => {
+        if(user.length >=1){
+            return res.status(409).json({
+                message: "User exists!",
+                status: 409
+            });
+        } else{
+            bcrypt.hash(req.body.securitypin, 10, (err, hash) => {
+                if(err){
+                    return res.status(500).json({
+                        error: err
+                    });
+                } else {
+                    const customer = new Customer({
+                        _id: new mongoose.Types.ObjectId(),
+                        name: req.body.name,
+                        phonenumber: req.body.phonenumber,
+                        email: req.body.email,
+                        securitypin: hash,
+                        balance: 5000000,
+                        accounttype: "thirdparty"
+                    });
+        
+                    customer.save().then(result => {
+                        res.status(200).json({
+                            message: 'User with id [' + result._id + '] created',
+                            createdUser:{
+                                userID : result._id,
+                                userName: result.name,
+                                userEmail: result.email,
+                                userSecurityPin: result.securitypin,
+                                balance : result.balance,
+                                accounttype: result.accounttype
+                            },
+                            status: 200
+                        });
+                    }). catch(err => {
+                        res.status(500).json({
+                            error: err
+                        });
+                    });
+                }
+            });
+        }
+    });
+});
+
 
 router.post('/login', (req, res, next) => {
     Customer.find({phonenumber : req.body.phonenumber}).exec().then(user => {
@@ -138,7 +190,8 @@ router.post('/login', (req, res, next) => {
                     status: 200,
                     userPhonenumber : user[0].phonenumber,
                     userName: user[0].name,
-                    userEmail: user[0].email
+                    userEmail: user[0].email,
+                    accountType : user[0].accounttype
                 })
             }
         })

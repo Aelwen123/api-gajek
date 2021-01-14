@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const routeCustomer = require('./API/routes/customer');
 const routePayment = require('./API/routes/payment');
 const routeMerchant = require('./API/routes/merchant');
+const routeAccountType = require('./API/routes/accounttype')
 
 mongoose.connect('mongodb+srv://gajek:gajekHebat123@gajek.yqpjd.mongodb.net/<dbname>?retryWrites=true&w=majority', {
     useMongoClient: true
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 app.use('/customer', routeCustomer);
 app.use('/payment', routePayment);
 app.use('/merchant', routeMerchant);
+app.use('/accounttype', routeAccountType)
 
 app.use((req, res, next) => {
     const error = new Error('Not found');

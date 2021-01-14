@@ -8,7 +8,8 @@ const customerSchema = mongoose.Schema({
     },
     email: String,
     securitypin : String,
-    balance : Number
+    balance : Number,
+    accounttype: String,
 });
 
 module.exports = mongoose.model('Customer', customerSchema);
